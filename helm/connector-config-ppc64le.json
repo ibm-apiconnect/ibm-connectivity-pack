@@ -1,0 +1,22 @@
+{
+  "action-connectors": {
+    "tag": "20250212-025929-ppc64le",
+    "digest": "sha256:c1166e0992b0cb739cbe0a6c3df5cad8b078d6f5ba6ca7ebe68b60fcf3054049"
+  },
+  "event-connectors": {
+    "tag": "20250207-054839-ppc64le",
+    "digest": "sha256:e338da1492cc2fe824087f06d098871cd9a81200432bb54c59260d6d1267ef74"
+  },
+  "java-tech-connectors": {
+    "tag": "20250217-040025-ppc64le",
+    "digest": "sha256:34dfc9b4a57c5d8d7760ed92a7fcf9178c78f9787ee2571b81f9b8c85934c57a"
+    },
+  "connectivity-pack-proxy": {
+    "tag": "20250213-060448-ppc64le",
+    "digest": "sha256:8d2029b6b7bbb65982655913f9d9d64fd0d38476042793ed66a7441565722d6b"
+  },
+  "connectivity-pack-prehook": {
+    "tag": "20250213-060448-ppc64le",
+    "digest": "sha256:6ff0be3a9ec0919c258d9cc0ebc49464c3d79d7b632897681d3dbe2e8bce4448"
+  }
+}

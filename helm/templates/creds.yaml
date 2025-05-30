@@ -1,0 +1,15 @@
+{{- if .Values.basicAuth.enable -}}
+kind: Secret
+apiVersion: v1
+metadata:
+  name: {{ include "ibm-connectivity-pack.basicAuthCreds" . }}
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}
+data:
+  password: {{ include "ibm-connectivity-pack.basicAuthPassword" . | b64enc }}
+  username: {{ .Values.basicAuth.username | b64enc }}
+type: kubernetes.io/basic-auth
+{{ end }}

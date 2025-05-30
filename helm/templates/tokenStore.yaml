@@ -1,0 +1,13 @@
+{{- if not (lookup "v1" "Secret" (include "ibm-connectivity-pack.namespace" .) (include "ibm-connectivity-pack.tokenStore" .)) -}}
+kind: Secret
+apiVersion: v1
+metadata:
+  name: {{ include "ibm-connectivity-pack.tokenStore" . }}
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+data: {}
+type: Opaque
+{{ end }}

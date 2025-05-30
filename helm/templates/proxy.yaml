@@ -1,0 +1,86 @@
+{{ if .Values.certificate.enable -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "ibm-connectivity-pack.proxy" . }}
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}    
+data:
+  {{ if .Values.certificate.MTLSenable -}}
+  stunnel.conf: |-
+    ; **************************************************************************
+    ; * Global options                                                         *
+    ; **************************************************************************
+    pid = /tmp/haproxy.pid
+    foreground = yes
+    ; **************************************************************************
+    ; * Service defaults                                                       *
+    ; **************************************************************************
+    cert =/etc/stunnel/secrets/server.cert.pem
+    key =/etc/stunnel/secrets/server.key.pem
+    CAfile =/etc/stunnel/secrets/server.ca.pem
+    ; Allow only TLS, thus avoiding SSL
+    sslVersion = TLSv1.2
+    socket = l:TCP_NODELAY=1
+    socket = r:TCP_NODELAY=1
+    verify = 2
+    TIMEOUTclose = 0
+    ; **************************************************************************
+    ; * Services                                                        *
+    ; **************************************************************************
+    [proxy]
+    accept = 3001
+    connect = /tmp/lcp.socket
+    [ecpproxy]
+    accept = 3004
+    connect = /tmp/ecp.socket
+    [fbcproxy]
+    accept = 3006
+    connect=localhost:3005
+    [webhookproxy]
+    verify = 1
+    accept = 3008
+    connect = localhost:3009
+    [wsproxy]
+    accept = 3042
+    connect = localhost:3022
+  {{ else }}
+  stunnel.conf: |-
+    ; **************************************************************************
+    ; * Global options                                                         *
+    ; **************************************************************************
+    pid = /tmp/haproxy.pid
+    foreground = yes
+    ; **************************************************************************
+    ; * Service defaults                                                       *
+    ; **************************************************************************
+    cert =/etc/stunnel/secrets/server.cert.pem
+    key =/etc/stunnel/secrets/server.key.pem
+    ; Allow only TLS, thus avoiding SSL
+    sslVersion = TLSv1.2
+    socket = l:TCP_NODELAY=1
+    socket = r:TCP_NODELAY=1
+    TIMEOUTclose = 0
+    ; **************************************************************************
+    ; * Services                                                        *
+    ; **************************************************************************
+    [proxy]
+    accept = 3001
+    connect = /tmp/lcp.socket
+    [ecpproxy]
+    accept = 3004
+    connect = /tmp/ecp.socket
+    [fbcproxy]
+    accept = 3006
+    connect=localhost:3005
+    [webhookproxy]
+    accept = 3008
+    connect = localhost:3009
+    [wsproxy]
+    accept = 3042
+    connect = localhost:3022
+  {{ end }}
+{{ end }}

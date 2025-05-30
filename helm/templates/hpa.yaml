@@ -1,0 +1,44 @@
+{{ if .Values.autoScaling.enable -}}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "ibm-connectivity-pack.hpa" . }}
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}    
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    apiVersion: apps/v1
+    name: {{ include "ibm-connectivity-pack.deploymentName" . }}
+  minReplicas: {{ .Values.autoScaling.minReplicas }}
+  maxReplicas: {{ .Values.autoScaling.maxReplicas }}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 30
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoScaling.cpuUtilization }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoScaling.memoryUtilization }}
+{{ end }}

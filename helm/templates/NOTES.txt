@@ -1,0 +1,15 @@
+IBM Connectivity Pack deployed successfully.
+
+{{- if and (.Values.certificate.enable) (.Values.certificate.MTLSenable) }}
+MTLS is enabled for secure communication. New certificates have been generated and stored in a Kubernetes Secret.  
+To view the client certificate, key, and CA, run:  
+kubectl get secret {{ include "ibm-connectivity-pack.stunnelClient" . }} -o yaml -n {{ include "ibm-connectivity-pack.namespace" . }}
+{{- end }}
+
+{{- if .Values.basicAuth.enable }}
+BASIC authentication is enabled. To view the BASIC Authentication Secret, run:  
+kubectl get secret {{ include "ibm-connectivity-pack.basicAuthCreds" . }} -o yaml -n {{ include "ibm-connectivity-pack.namespace" . }}
+{{- end }}
+
+To view the ConfigMap containing the exposed internal service URL, run:  
+kubectl get configmap {{ include "ibm-connectivity-pack.config" . }} -o yaml -n {{ include "ibm-connectivity-pack.namespace" . }}

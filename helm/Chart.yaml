@@ -1,0 +1,25 @@
+apiVersion: v2
+appVersion: 1.2.0
+description: Helm chart for IBM Connectivity Pack. The helm application is a Connectors
+  as a Container offering that offers connectors as independently deployable application
+  and provides a consistent interface for interaction. The application offers both
+  action and event connectors.
+keywords:
+- ibm-connectivity-pack
+- connector
+- connectors
+- connectivity
+- action-connectors
+- event-connectors
+- actions
+- events
+- connector-runtime
+- connectivityx
+- connector-framework
+- webhook-connectors
+- polling-connectors
+- event-polling
+kubeVersion: '>=1.25.0'
+name: ibm-connectivity-pack
+type: application
+version: 1.2.0

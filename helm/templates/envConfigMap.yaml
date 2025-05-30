@@ -1,0 +1,13 @@
+{{- if not (eq (toJson .Values.environmentVariables) "{}") }}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "ibm-connectivity-pack.envConfig" . }}
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+data:
+  {{- toYaml .Values.environmentVariables | nindent 2 }}
+{{ end }}  

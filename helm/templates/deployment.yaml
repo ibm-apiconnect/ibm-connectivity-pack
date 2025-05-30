@@ -1,0 +1,395 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ include "ibm-connectivity-pack.deploymentName" . }} 
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}  
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "ibm-connectivity-pack.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels: 
+        {{- include "ibm-connectivity-pack.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Always
+      serviceAccountName: {{ include "ibm-connectivity-pack.serviceAccountName" .}}
+      terminationGracePeriodSeconds: 60
+      imagePullSecrets: 
+        - name: {{ include "ibm-connectivity-pack.imagePullSecretname" . }}   
+      containers:
+        - name: {{ .Values.action.name }}
+          resources: 
+            {{- toYaml .Values.action.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /admin/ready
+              port: 3020
+              scheme: HTTP
+            timeoutSeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /admin/ready
+              port: 3020
+              scheme: HTTP
+            timeoutSeconds: 1
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 120          
+          livenessProbe:
+            httpGet:
+              path: /admin/ready
+              port: 3020
+              scheme: HTTP
+            timeoutSeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          envFrom:
+            - configMapRef: 
+                optional: true
+                name: {{ include "ibm-connectivity-pack.envConfig" . }}
+          env:
+            - name: CONNECTOR_SERVICE_ROUTE
+              value: {{ include "ibm-connectivity-pack.actionServiceRoute" .}}
+            - name: ENABLE_DYNAMIC_CREDENTIALS_MODE
+              value: 'true'
+            - name: ENABLE_REFRESH_TOKEN_MODE
+              value: {{ ternary true false (.Values.enableRefreshTokenMode) | quote }}
+            - name: CONNECTOR_SERVICE_PORT
+              value: "3020"
+            - name: FEATURE_TOGGLES_OVERRIDE
+              value: "{\"epic3633-stateless-account\": 1, \"epic3627-ea-connector-service\": 1, \"epic3660-enable-refresh-token-api\": 1 }"
+            - name: LCP_HTTP_PORT
+              value: "3020"
+            - name: FIREFLY_DESIGNER_RUNTIME_MODE
+              value: "ACP"
+            - name: FIREFLY_ROUTE_EVENTS_CONNECTOR_PROVIDER
+              value: {{ include "ibm-connectivity-pack.eventServiceRoute" .}}
+            - name: OPENAPI_FILES_MOUNT_DIRECTORY
+              value: "./connectors"                        
+            - name: CONNECTOR_SERVICE
+              value: 'true'          
+            - name: DESIGNER_FLOWS_OPERATION_MODE
+              value: local
+            - name: DEVELOPMENT_MODE
+              value: 'false'              
+            - name: FIREFLY_USERID
+              value: default
+            - name: APPLICATION_MEM_LIMIT
+              value: {{ .Values.action.resources.limits.memory }}
+            - name: bunyan
+              value: {{ .Values.bunyan }}
+            - name: CONNECTOR_ACCOUNT
+              value: /opt/ibm/app/accounts
+            - name: NAMESPACE
+              value: {{ include "ibm-connectivity-pack.namespace" . }}
+            - name: TOKEN_STORE_SECRET_NAME
+              value: {{ include "ibm-connectivity-pack.tokenStore" .}} 
+            - name: MQSI_DISABLE_SALESFORCE_CONNECTOR
+              value: '1'
+            - name: FIREFLY_ROUTE_LOOPBACK_CONNECTOR_PROVIDER
+              value: {{ include "ibm-connectivity-pack.actionServiceRoute" .}}
+            - name: SERVICE_NAME
+              value: {{ .Values.action.name }}
+            - name: WORKING_DIRECTORY
+              value: /opt/ibm/app/workdir
+            - name: CONNECTOR_SERVICE_AUTH_CREDS_FILE
+              value: "/opt/ibm/app/creds"
+            - name: CONNECTOR_SERVICE_EVENTS_ALLOWLIST
+              value: {{- toYaml .Values.csCommon.eventList | indent 2 }}
+            - name: CONNECTOR_SERVICE_EVENTS
+              value: {{ .Values.event.enable | quote }}
+            - name: SUBSCRIBE_PERSISTENCE
+              value: k8s
+            - name: MUTUAL_AUTH
+              value: {{ include "ibm-connectivity-pack.mutualAuthServiceRoute" .}}
+            - name: CONNECTOR_JAVA_SERVICE
+              value: {{ include "ibm-connectivity-pack.javaServiceRoute" .}}
+            {{ if .Values.javaservice.enable -}}
+            - name: STANDALONE_CLIENT
+              value: 'true'
+            {{ end }}
+            - name: TECH_CONN_CCT_MODE
+              value: development_mode
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - containerPort: 3001
+              protocol: TCP
+            - containerPort: 3020
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: workdir
+              readOnly: true
+              mountPath: /opt/ibm/app/workdir
+            {{ if .Values.certificate.enable -}}
+            - name: stunnel-client
+              readOnly: true
+              mountPath: /opt/ibm/app/ssl
+            {{ end }}
+            {{ if .Values.basicAuth.enable -}}
+            - name: cred
+              readOnly: true
+              mountPath: "/opt/ibm/app/creds"
+            {{ end }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.action.image }}-{{ .Values.architecture }}@{{ index .Values.action.digest .Values.architecture }}
+        {{ if .Values.event.enable -}}
+        - name: {{ .Values.event.name }}
+          resources: 
+            {{- toYaml .Values.event.resources | nindent 12 }}
+          readinessProbe:
+            exec:
+              command:
+                - /readiness/readyECP.sh
+            timeoutSeconds: 4
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 1
+          startupProbe:
+            exec:
+              command:
+                - /readiness/readyECP.sh
+            timeoutSeconds: 1
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 120
+          livenessProbe:
+            exec:
+              command:
+                - /readiness/readyECP.sh
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 1
+          envFrom:
+            - configMapRef:
+                optional: true            
+                name: {{ include "ibm-connectivity-pack.envConfig" . }}            
+          env:
+            - name: ENABLE_DYNAMIC_CREDENTIALS_MODE
+              value: 'true'
+            - name: FIREFLY_ROUTE_LOOPBACK_CONNECTOR_PROVIDER
+              value: {{ include "ibm-connectivity-pack.actionServiceRoute" .}}
+            - name: FEATURE_TOGGLES_OVERRIDE
+              value: "{\"epic3633-stateless-account\": 1, \"epic3627-ea-connector-service\": 1 }"
+            - name: CONNECTOR_SERVICE_EVENTS
+              value: {{ .Values.event.enable | quote }}
+            - name: DESIGNER_FLOWS_OPERATION_MODE
+              value: local
+            - name: FIREFLY_USERID
+              value: default              
+            - name: NAMESPACE
+              value: {{ include "ibm-connectivity-pack.namespace" . }}
+            - name: SERVICE_NAME
+              value: {{ include "ibm-connectivity-pack.service" .}}
+            - name: ECP_SERVICE_ROUTE
+              value: {{ include "ibm-connectivity-pack.eventServiceRoute" .}}
+            - name: WCP_IPC_PATH
+              value: "3009"
+            - name: WEBHOOK_PROVIDER_BASEURL
+              value: {{ include "ibm-connectivity-pack.webhookServiceRoute" .}}
+            - name: LEADER_ELECTION_PORT
+              value: "3003"
+            - name: CS_WEB_SOCKET_SERVER_PORT
+              value: "3022"            
+            - name: APPLICATION_MEM_LIMIT
+              value:  {{ .Values.event.resources.limits.memory }}
+            - name: WORKING_DIRECTORY
+              value: /opt/ibm/app/workdir   
+            - name: CONNECTOR_SERVICE_EVENTS_ALLOWLIST
+              value: {{- toYaml .Values.csCommon.eventList | indent 2 }}
+            - name: CONNECTOR_SERVICE_ENABLE_WS
+              value: 'true'
+            - name: CONNECTOR_ACCOUNT
+              value: /opt/ibm/app/accounts
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SERVER_NAME
+              value: {{ .Release.Name }}
+            - name: bunyan
+              value: {{ .Values.bunyan }}
+            - name: TOKEN_STORE_SECRET_NAME
+              value: {{ include "ibm-connectivity-pack.tokenStore" .}} 
+            - name: MQSI_DISABLE_SALESFORCE_CONNECTOR
+              value: '1'
+            - name: DEVELOPMENT_MODE
+              value: 'false'
+            - name: SUBSCRIBE_PERSISTENCE
+              value: k8s
+            - name: SINGLE_REPLICA
+              value: 'true'              
+            - name: CONNECTOR_SERVICE_AUTH_CREDS_FILE
+              value: "/opt/ibm/app/creds"
+            - name: CONNECTOR_SERVICE_ENABLE_WS_PRODUCER
+              value: 'true'
+            - name: MUTUAL_AUTH
+              value: {{ include "ibm-connectivity-pack.mutualAuthServiceRoute" .}}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: ecpleadelect
+              containerPort: 3003
+              protocol: UDP
+            - name: webhook
+              containerPort: 3009
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp 
+            - name: workdir
+              readOnly: true
+              mountPath: /opt/ibm/app/workdir
+            {{ if .Values.certificate.enable -}}
+            - name: stunnel-client
+              readOnly: true
+              mountPath: /opt/ibm/app/ssl
+            {{ end }}
+            {{ if .Values.basicAuth.enable -}}
+            - name: cred
+              readOnly: true
+              mountPath: "/opt/ibm/app/creds"
+            {{ end }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.event.image }}-{{ .Values.architecture }}@{{ index .Values.event.digest .Values.architecture }}
+        {{ end }}
+        {{ if .Values.javaservice.enable -}}
+        - name: {{ .Values.javaservice.name }}
+          resources: 
+            {{- toYaml .Values.javaservice.resources | nindent 12 }}
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            runAsNonRoot: true
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault           
+          env:
+            - name: NAMESPACE
+              value: {{ include "ibm-connectivity-pack.namespace" . }}
+          ports:
+            - name: javaservice
+              containerPort: 9080
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.javaservice.image }}-{{ .Values.architecture }}@{{ index .Values.javaservice.digest .Values.architecture }}
+        {{ end }}
+        {{ if .Values.certificate.enable -}}
+        - name: {{ .Values.proxy.name }}
+          resources: # Update below value for vertical scaling of container
+            limits:
+              cpu: '1'
+              ephemeral-storage: 10Gi
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 150Mi
+              memory: 256Mi
+          readinessProbe:
+            exec:
+              command:
+                - /readiness/ready.sh
+            timeoutSeconds: 3
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 1
+          livenessProbe:
+            exec:
+              command:
+                - /readiness/ready.sh
+            timeoutSeconds: 3
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 1
+          startupProbe:
+            exec:
+              command:
+                - /readiness/ready.sh
+            timeoutSeconds: 1
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 120
+          terminationMessagePath: /dev/termination-log
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - kill `cat /tmp/haproxy.pid`
+          command:
+            - /bin/stunnel
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: https-port
+              containerPort: 3001
+              protocol: TCP
+            - name: https-port-ecp
+              containerPort: 3004
+              protocol: TCP
+            - name: https-webhook
+              containerPort: 3008
+              protocol: TCP
+            - name: https-websocket
+              containerPort: 3022
+              protocol: TCP             
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: stunnel-server
+              mountPath: /etc/stunnel/secrets
+            - name: proxy
+              mountPath: /etc/stunnel
+          terminationMessagePolicy: File
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.proxy.image }}-{{ .Values.architecture }}@{{ index .Values.proxy.digest .Values.architecture }}
+          args:
+            - /etc/stunnel/stunnel.conf
+        {{ end }}
+      serviceAccount: {{ include "ibm-connectivity-pack.serviceAccountName" .}}
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 10Gi
+        - name: workdir
+          emptyDir: {}
+        - name: cred
+          secret:
+            secretName: {{ include "ibm-connectivity-pack.basicAuthCreds" . }}
+            optional: true
+        {{- include "ibm-connectivity-pack.stunnelvolume" . | nindent 8  }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%

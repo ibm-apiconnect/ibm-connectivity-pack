@@ -1,0 +1,41 @@
+{{- if eq .Values.skipHooks false }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ibm-connectivity-pack.preHookJob" . }}
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+    {{- toYaml .Values.annotations | nindent 4 }}
+spec:
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      serviceAccountName: {{ include "ibm-connectivity-pack.preHookJob" . }}-sa
+      restartPolicy: Never
+      imagePullSecrets: 
+        - name: {{ include "ibm-connectivity-pack.imagePullSecretname" . }}
+      containers:
+        - name: mtls-cert-generator
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            runAsNonRoot: true
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.preHook.image }}-{{ .Values.architecture }}@{{ index .Values.preHook.digest .Values.architecture }}
+          command:
+            - /bin/sh
+            - "-c"
+            - |
+              kubectl delete secret {{ include "ibm-connectivity-pack.stunnelClient" .}} --namespace {{ include "ibm-connectivity-pack.namespace" . }} --ignore-not-found=true
+              kubectl delete secret {{ include "ibm-connectivity-pack.stunnelServer" .}} --namespace {{ include "ibm-connectivity-pack.namespace" . }} --ignore-not-found=true
+{{ end }}

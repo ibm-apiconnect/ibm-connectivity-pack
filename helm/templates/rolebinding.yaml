@@ -1,0 +1,39 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name:  {{ include "ibm-connectivity-pack.rolebinding" .}}
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "ibm-connectivity-pack.serviceAccountName" .}}
+    namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "ibm-connectivity-pack.role" .}}
+
+---
+{{- if eq .Values.skipHooks false }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "ibm-connectivity-pack.preHookJobRoleBinding" . }}
+  namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+  labels:
+    {{- include "ibm-connectivity-pack.labels" . | nindent 4 }}  
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade, post-delete
+    "helm.sh/hook-weight": "-1"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+    {{- toYaml .Values.annotations | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "ibm-connectivity-pack.preHookJobSa" . }}
+    namespace: {{ include "ibm-connectivity-pack.namespace" . }}
+roleRef:
+  kind: Role
+  name: {{ include "ibm-connectivity-pack.preHookJobRole" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{ end }}
