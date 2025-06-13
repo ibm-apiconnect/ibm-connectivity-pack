@@ -24,7 +24,7 @@ Clone the repository in your enviroment.
 ### Generate certificates
 The connector service provides an option to enable MTLS communication.
 
-#### Option to enable MTLS
+#### (Optional) Enable MTLS
 Run the below command to set the environment variable
 ```
 export MTLS_ENABLED=true
