@@ -6,14 +6,14 @@
 # Default values for IBM Connectivity pack.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-skipHooks: false
+skipHooks: true
 namespace: ''
 license:
   accept: false
 replicaCount: 1 # Replica of the POD
 bunyan: "'{\"loglevel\" : \"info\", \"logsrc\" : true, \"logstdouttext\" : {}}'" # Override Log configuration
 environmentVariables: {} # Yaml object ENV to be added on action and event pods
-architecture: amd64 # possible values are amd64 s390x ppc64le
+architecture: amd64
 annotations:
   productName: IBM Connectivity pack
 image:
@@ -35,42 +35,24 @@ certificate:
   serverCertPropertyName: 'tls.crt'
   serverCertKeyPropertyName: 'tls.key'
   caCertPropertyName: 'ca.crt'
-  pkcsPassword: '' # pkcs.p12 password
+  pkcsPassword: 'admin123' # pkcs.p12 password
 route:
-  enable: false # generate OpenShift route for external access
+  enable: true # generate OpenShift route for external access
   domain: 'example.com' # subdomain of OpenShift cluster where connector service is being deployed
 basicAuth:
   enable: false # Enable basic auth for service 
   username: 'csuser'
 preHook:
   image: connectivity-pack-prehook
-  digest:
-    amd64: sha256:eeb0299baad5bcd1aaff95ac27341a65b448ba15540a629e280064bcb7bd3e75
-    s390x: sha256:ddd98ae49b7376b3e78cc22a4685fb0b654e493614b9dd779dacd40e9fccce1d
-    ppc64le: sha256:6ff0be3a9ec0919c258d9cc0ebc49464c3d79d7b632897681d3dbe2e8bce4448
-  tag:
-    amd64: 20250213-060448-amd64
-    s390x: 20250213-060448-s390x
-    ppc64le: 20250213-060448-ppc64le
+  tag: 20250213-060448-amd64
 proxy:
   name: connectivity-pack-proxy
   image: connectivity-pack-proxy
-  digest:
-    amd64: sha256:b6343449bc12471f4dbec41821050ed4d52f1f2486d2e4607838c35c0bba037c
-    s390x: sha256:d6dedb1c4d6dfb5b6d0cc9431e673458042995023199fd51a91e1d567068a468
-    ppc64le: sha256:8d2029b6b7bbb65982655913f9d9d64fd0d38476042793ed66a7441565722d6b
-  tag:
-    amd64: 20250213-060448-amd64
-    s390x: 20250213-060448-s390x
-    ppc64le: 20250213-060448-ppc64le
+  tag: 20250529-075002-amd64
 enableRefreshTokenMode: false # Enable refresh token mode
 action:
   name: action-connectors
   image: action-connectors
-  digest:
-    amd64: sha256:96a64c38c5fc81596ffb4851c9d6f8ec0eded00c51966872ccc890eb4e896ea1
-    s390x: sha256:d2103aba9584813277a30812973cbab37c40dcf177f4035f4fe295a912b8f4f8
-    ppc64le: sha256:c1166e0992b0cb739cbe0a6c3df5cad8b078d6f5ba6ca7ebe68b60fcf3054049
   resources: # Update below value for vertical scaling of container
     limits:
       cpu: '1'
@@ -80,18 +62,11 @@ action:
       cpu: 250m
       ephemeral-storage: 5Gi
       memory: 256Mi
-  tag:
-    amd64: 20250212-025929-amd64
-    s390x: 20250212-025929-s390x
-    ppc64le: 20250212-025929-ppc64le
+  tag: 20250529-075926-amd64
 event:
   enable: false # Set to true if Event container is needed
   name: event-connectors
   image: event-connectors # Update image
-  digest:
-    amd64: sha256:09d8bd3952a5337d974bac71faf852ba20aebd3c31449223b1003518710a6f97
-    s390x: sha256:60200372344fde6241c2b741c73f527f5514176c74a08fd4dad5a1717096cdd0
-    ppc64le: sha256:e338da1492cc2fe824087f06d098871cd9a81200432bb54c59260d6d1267ef74
   resources: # Update below value for vertical scaling of container
     limits:
       cpu: '1'
@@ -101,18 +76,11 @@ event:
       cpu: 250m
       ephemeral-storage: 5Gi
       memory: 400Mi
-  tag:
-    amd64: 20250207-054839-amd64
-    s390x: 20250207-054839-s390x
-    ppc64le: 20250207-054839-ppc64le
+  tag: 20250207-054839-amd64
 javaservice:
   enable: false # Set to true if Java container is needed
   name: java-tech-connectors
   image: java-tech-connectors # Update image
-  digest:
-    amd64: sha256:f5c190fdfc819e7ef2ba219ad95db280f09dc9d0888d5ac8bade83b578a8a5bb
-    s390x: sha256:bb63260cde1b7380210bd46df2c6c10a46fb0aaa2491cf1ee02f920e03ed5153
-    ppc64le: sha256:34dfc9b4a57c5d8d7760ed92a7fcf9178c78f9787ee2571b81f9b8c85934c57a
   resources: # Update below value for vertical scaling of container
     limits:
       cpu: '1'
@@ -122,10 +90,7 @@ javaservice:
       cpu: 250m
       ephemeral-storage: 5Gi
       memory: 400Mi
-  tag:
-    amd64: 20250217-040025-amd64
-    s390x: 20250217-040025-s390x
-    ppc64le: 20250217-040025-ppc64le
+  tag: 20250529-030020-amd64
 autoScaling:
   enable: false # Update this to true to enable autoScaling
   minReplicas: 1 # What is the minimum replica needed
