@@ -4,41 +4,7 @@ This Helm chart deploys the IBM Connectivity pack application, which consists of
 ## Prerequisites
 - Kubernetes 1.16+
 - Helm 3.0+
-- Optional: OpenShift 4.x (for Route and OpenShift-specific features)
-
-## Installation
-Add Helm Repository
-```bash
-export VERSION='1.0.0'
-helm pull oci://us.icr.io/csa-helm-charts/ibm-connectivity-pack --version $VERSION
-`tar -xzf ibm-connectivity-pack-${VERSION}.tgz `
-`rm ibm-connectivity-pack-${VERSION}.tgz`
-```
-
-## Install the Chart
-To install the chart with the release name `my-release`:
-```bash
-helm install my-release connector-service/ibm-connectivity-pack
-```
-
-You can also customize the chart by passing values through the `--set` flag or by using a custom values.yaml file.
-```bash
-helm install my-release connector-service/ibm-connectivity-pack -f values.yaml --set replicaCount=3
-```
-
-## Upgrade the Chart
-
-To upgrade an existing release with new values:
-```bash
-helm upgrade my-release connector-service/ibm-connectivity-pack -f values.yaml
-```
-
-## Uninstallation
-
-To uninstall/delete the `my-release` deployment:
-```bash
-helm uninstall my-release
-```
+- OpenShift 4.x (for Route and OpenShift-specific features)
 
 ## Configuration
 
@@ -111,16 +77,11 @@ autoScaling.memoryUtilization | Target memory utilization percentage for auto-sc
 ## MTLS Configuration
 The chart supports both MTLS and TLS:
 
-**MTLS Enabled:** Certificates are generated and stored in a Kubernetes secret. To regenerate certificates, set `certificate.generate` to `true`.
+**MTLS Enabled:** Certificates are  stored in a Kubernetes secret.
 **TLS Fallback:** If MTLS is disabled, the service defaults to TLS. By default TLS is enabled
 
-## To view or manage the MTLS secrets:
-```bash
-kubectl get secret my-release-mtls-secret -o yaml -n <namespace>
-```
-
 ## OpenShift Route
-To enable an OpenShift Route for external access, set `route.enable` to `true` in the values.yaml file. This will expose your application outside of the cluster via an OpenShift route.
+To enable an OpenShift Route for external access, set `route.enable` to `true` in the values.yaml file. This will expose your application outside of the cluster via an OpenShift route. It is set to `true` by default.
 
 ## Basic Authentication
 Basic authentication can be enabled for services by setting `basicAuth.enable` to `true`

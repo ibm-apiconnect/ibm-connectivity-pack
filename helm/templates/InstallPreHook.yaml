@@ -31,7 +31,7 @@ spec:
             allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.preHook.image }}-{{ .Values.architecture }}@{{ index .Values.preHook.digest .Values.architecture }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.preHook.image }}:{{ .Values.preHook.tag }}
           command:
             - /bin/sh
             - "-c"

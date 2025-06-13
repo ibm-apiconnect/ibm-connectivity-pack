@@ -154,7 +154,7 @@ spec:
               readOnly: true
               mountPath: "/opt/ibm/app/creds"
             {{ end }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.action.image }}-{{ .Values.architecture }}@{{ index .Values.action.digest .Values.architecture }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.action.image }}:{{ .Values.action.tag }}
         {{ if .Values.event.enable -}}
         - name: {{ .Values.event.name }}
           resources: 
@@ -279,7 +279,7 @@ spec:
               readOnly: true
               mountPath: "/opt/ibm/app/creds"
             {{ end }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.event.image }}-{{ .Values.architecture }}@{{ index .Values.event.digest .Values.architecture }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.event.image }}:{{ .Values.event.tag }}
         {{ end }}
         {{ if .Values.javaservice.enable -}}
         - name: {{ .Values.javaservice.name }}
@@ -303,7 +303,7 @@ spec:
               containerPort: 9080
               protocol: TCP
           imagePullPolicy: IfNotPresent
-          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.javaservice.image }}-{{ .Values.architecture }}@{{ index .Values.javaservice.digest .Values.architecture }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.javaservice.image }}:{{ .Values.javaservice.tag }}
         {{ end }}
         {{ if .Values.certificate.enable -}}
         - name: {{ .Values.proxy.name }}
@@ -372,7 +372,7 @@ spec:
             - name: proxy
               mountPath: /etc/stunnel
           terminationMessagePolicy: File
-          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.proxy.image }}-{{ .Values.architecture }}@{{ index .Values.proxy.digest .Values.architecture }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.path }}/{{ .Values.proxy.image }}:{{ .Values.proxy.tag }}
           args:
             - /etc/stunnel/stunnel.conf
         {{ end }}
