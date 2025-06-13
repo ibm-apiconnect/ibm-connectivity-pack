@@ -35,6 +35,7 @@ Run the below command to set the environment variables
 ```
 export RELEASE_NAME=<RELEASE_NAME>
 export RELEASE_NAMESPACE=<RELEASE_NAMESPACE>
+export DNS2=$RELEASE_NAME-service.$RELEASE_NAME.svc.cluster.local
 export DNS3=<route.domain>
 export PKCS_PASSWORD=<certificate.pkcsPassword>
 ```
