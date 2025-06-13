@@ -47,12 +47,12 @@ preHook:
   tag: 20250213-060448-amd64
 proxy:
   name: connectivity-pack-proxy
-  image: connectivity-pack-proxy
+  image: ibm-apiconnect-management-api-assistant-connectivity-pack-proxy
   tag: 20250529-075002-amd64
 enableRefreshTokenMode: false # Enable refresh token mode
 action:
   name: action-connectors
-  image: action-connectors
+  image: ibm-apiconnect-management-api-assistant-action-connectors
   resources: # Update below value for vertical scaling of container
     limits:
       cpu: '1'
@@ -80,7 +80,7 @@ event:
 javaservice:
   enable: false # Set to true if Java container is needed
   name: java-tech-connectors
-  image: java-tech-connectors # Update image
+  image: ibm-apiconnect-management-api-assistant-java-tech-connectors # Update image
   resources: # Update below value for vertical scaling of container
     limits:
       cpu: '1'
