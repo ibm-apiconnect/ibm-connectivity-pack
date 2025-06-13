@@ -85,7 +85,7 @@ helm package ./
 To install the Connectivity Pack, run the following command:
 
 ```bash
-helm install $RELEASE_NAME ./ibm-connectivity-pack-1.4.2.tgz -n $RELEASE_NAMESPACE --set license.accept=true, certificate.serverSecretName=$RELEASE_NAME-server-secrets, certificate.clientSecretName=$RELEASE_NAME-client-secrets
+helm install $RELEASE_NAME ./ibm-connectivity-pack-1.4.2.tgz -n $RELEASE_NAMESPACE --set license.accept=true --set certificate.serverSecretName=$RELEASE_NAME-server-secrets --set certificate.clientSecretName=$RELEASE_NAME-client-secrets
 ```
 
 Where:
