@@ -17,8 +17,8 @@ architecture: amd64
 annotations:
   productName: IBM Connectivity pack
 image:
-  registry: us.icr.io # Image registry base URL
-  path: conn-pack-prod-ns
+  registry: cp.icr.io # Image registry base URL
+  path: cp/apic
   imagePullSecretName: '' # Image pull secret name if already  exist please specify here else give below values for creating new Image pull secret
   imagePullEmail: dummyEmail # Image pull secret email ID
   imagePullUsername: iamapikey # Image pull username 
@@ -48,6 +48,7 @@ preHook:
 proxy:
   name: connectivity-pack-proxy
   image: ibm-apiconnect-management-api-assistant-connectivity-pack-proxy
+  digest: sha256:0a7af083968cbe499226ee082a304e654b7b94bdddfbcb7e9cf74b33b0a0c690
   tag: 20250529-075002-amd64
 enableRefreshTokenMode: false # Enable refresh token mode
 action:
@@ -63,6 +64,7 @@ action:
       ephemeral-storage: 5Gi
       memory: 256Mi
   tag: 20250529-075926-amd64
+  digest: sha256:aa60351cd4dd0a28353f7296e5f758d5d05759996a3b6985723b5eb66e81c0cf
 event:
   enable: false # Set to true if Event container is needed
   name: event-connectors
@@ -91,6 +93,7 @@ javaservice:
       ephemeral-storage: 5Gi
       memory: 400Mi
   tag: 20250529-030020-amd64
+  digest: sha256:0eb909f38b0848ffc118721ecf77c17444140fd38e9eb97df18f2efddcc7bbd8
 autoScaling:
   enable: false # Update this to true to enable autoScaling
   minReplicas: 1 # What is the minimum replica needed
