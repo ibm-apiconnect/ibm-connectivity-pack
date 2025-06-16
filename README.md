@@ -1,6 +1,6 @@
 # IBM Connectivity Pack
 
-IBM Connectivity pack consists of connector framework and a huge set of connectors that are designed to help IBM Software products to solve their connectivity requirements. It is a reusable asset that can deployed within a product scope. It offers consistent interface through ReST APIs, using Open standards.
+IBM Connectivity pack consists of connector framework and a huge set of connectors that are designed to help IBM Software products to solve their connectivity requirements. It is a reusable asset that can deployed within a product scope. It offers consistent interface through REST APIs, using Open standards.
 
 ## Contents
 
@@ -100,6 +100,6 @@ For more information about installing the Connectivity Pack, including a complet
 
 ## Accessing Connectivity Pack via Route
 
-To access connectivity pack, use the host url present in the Routes section of Openshift.
+To access connectivity pack, use the host URL present in the Routes section of Openshift.
 
 If MTLS is enabled, the client certificates can be fetched from the Secrets section of Openshift. Secret with name `RELEASE_NAME-client-secrets` contains the secrets.
